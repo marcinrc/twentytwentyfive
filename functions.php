@@ -165,3 +165,60 @@ if ( ! function_exists( 'twentytwentyfive_format_binding' ) ) :
 		}
 	}
 endif;
+
+function mytheme_enqueue_tabs_toggle() {
+    // Rejestrujemy "pusty" skrypt, żeby dodać do niego inline JS
+    $handle = 'mytheme-tabs-toggle';
+    wp_register_script( $handle, '', [], null, true );
+    wp_enqueue_script( $handle );
+
+    $inline_js = <<<JS
+(function () {
+  function hideAll() {
+    document.querySelectorAll('.tab-content, .tab-close').forEach(function(el){ el.style.display = 'none'; });
+    document.querySelectorAll('.tab-open').forEach(function(el){ el.style.display = ''; });
+  }
+
+  function showAll() {
+    document.querySelectorAll('.tab-content, .tab-close').forEach(function(el){ el.style.display = ''; });
+    document.querySelectorAll('.tab-open').forEach(function(el){ el.style.display = 'none'; });
+  }
+
+  function init() {
+    // Ładujemy logikę tylko, jeśli jest choć jeden .tab-open
+    if (!document.querySelector('.tab-open')) return;
+
+    // Stan domyślny: ukryj treści i przycisk zamknięcia
+    hideAll();
+
+    // Delegacja zdarzeń: działa także dla elementów dodanych dynamicznie
+    document.addEventListener('click', function(e) {
+      var openBtn = e.target.closest('.tab-open');
+      var closeBtn = e.target.closest('.tab-close');
+
+      if (openBtn) {
+        e.preventDefault();
+        showAll();
+      } else if (closeBtn) {
+        e.preventDefault();
+        hideAll();
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+JS;
+
+    wp_add_inline_script( $handle, $inline_js );
+
+    // CSS domyślnie ukrywający .tab-content oraz .tab-close
+    wp_register_style( 'mytheme-tabs-toggle-style', false );
+    wp_enqueue_style( 'mytheme-tabs-toggle-style' );
+    wp_add_inline_style( 'mytheme-tabs-toggle-style', '.tab-content, .tab-close { display: none; }' );
+}
+add_action( 'wp_enqueue_scripts', 'mytheme_enqueue_tabs_toggle' );
