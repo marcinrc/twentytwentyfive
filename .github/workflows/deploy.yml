@@ -1,35 +1,59 @@
 name: Deploy to FTP
-
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   ftp-deploy:
-    name: FTP Deploy
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1
       matrix:
-        server_dir:
-          - /public_html/demo/wp-content/themes/twentytwentyfive/
-          - /public_html/en/wp-content/themes/twentytwentyfive/
-          - /public_html/wp-content/themes/twentytwentyfive/
+        target:
+          - { name: "demo", dir: "/public_html/demo/wp-content/themes/twentytwentyfive/" }
+          - { name: "pl",   dir: "/public_html/wp-content/themes/twentytwentyfive/" }
+          - { name: "en",   dir: "/public_html/en/wp-content/themes/twentytwentyfive/" }
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Upload to FTP (${{ matrix.server_dir }})
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      # ---- Network preflight (shows where it fails) ----
+      - name: Connectivity checks
+        shell: bash
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+        run: |
+          set -e
+          echo "DNS ->"; nslookup "$FTP_HOST" || true
+          echo "TCP:21 ->"; (timeout 5 bash -lc "cat < /dev/null > /dev/tcp/$FTP_HOST/21" && echo "ok") || echo "fail"
+          echo "Explicit FTPS handshake ->"
+          # harmless probe; if server doesn't do TLS you'll still see the banner
+          timeout 7 openssl s_client -starttls ftp -crlf -connect "$FTP_HOST:21" </dev/null || true
+
+      - name: Upload to ${{ matrix.target.name }} (${{ matrix.target.dir }})
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
-          server: ${{ secrets.FTP_HOST }}
+          server:   ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
+
+          # Try FTPS first. If the preflight shows FTPS fails (no TLS, handshake errors),
+          # switch this to `ftp`.
+          protocol: ftps
+          port: 21
+
+          server-dir: ${{ matrix.target.dir }}
           local-dir: ./
-          server-dir: ${{ matrix.server_dir }}
+
+          # Unique state per destination
+          state-name: .ftp-deploy-sync-state-${{ matrix.target.name }}.json
+
+          # Slower hosts sometimes need more time
+          timeout: 120000
+
+          log-level: verbose
+
           exclude: |
             **/.git*
             **/.git*/**
@@ -39,4 +63,4 @@ jobs:
             **/*.md
             **/README*
             **/tests/**
-            **/.ftp-deploy-sync-state.json
+            **/.ftp-deploy-sync-state*.json
