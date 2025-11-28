@@ -10,8 +10,8 @@ jobs:
       max-parallel: 1
       matrix:
         target:
-          - { name: "demo", dir: "/public_html/demo/wp-content/themes/twentytwentyfive/" }
-          - { name: "pl",   dir: "/public_html/wp-content/themes/twentytwentyfive/" }
+          # - { name: "demo", dir: "/public_html/demo/wp-content/themes/twentytwentyfive/" }
+          # - { name: "pl",   dir: "/public_html/wp-content/themes/twentytwentyfive/" }
           - { name: "en",   dir: "/public_html/en/wp-content/themes/twentytwentyfive/" }
 
     steps:
