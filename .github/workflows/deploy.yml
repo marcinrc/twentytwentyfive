@@ -7,21 +7,19 @@ on:
 jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15   # maksymalny czas działania joba
+    timeout-minutes: 15
 
     strategy:
       max-parallel: 1
       matrix:
         target:
-          # - { name: "demo", dir: "/public_html/demo/wp-content/themes/twentytwentyfive/" }
-          # - { name: "pl",   dir: "/public_html/wp-content/themes/twentytwentyfive/" }
-          - { name: "en",   dir: "/public_html/en/wp-content/themes/twentytwentyfive/" }
+          - { name: "en", dir: "/public_html/en/wp-content/themes/twentytwentyfive/" }
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # (Opcjonalnie — bardzo pomocne przy debugowaniu problemów z FTPS)
+      # Możesz ten krok później wyciąć, jest tylko diagnostyczny
       - name: Connectivity checks
         shell: bash
         env:
@@ -35,10 +33,6 @@ jobs:
           echo "TCP:21 ->"
           (timeout 5 bash -lc "cat < /dev/null > /dev/tcp/$FTP_HOST/21" && echo "ok") || echo "fail"
 
-          echo
-          echo "Explicit FTPS handshake ->"
-          timeout 7 openssl s_client -starttls ftp -crlf -connect "$FTP_HOST:21" </dev/null || true
-
       - name: Upload to ${{ matrix.target.name }} (${{ matrix.target.dir }})
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
@@ -46,27 +40,19 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
 
-          # Serwer wg logów wspiera AUTH TLS, więc używamy FTPS (explicit)
-          protocol: ftps
+          # 👇 TEST: zwykły FTP, bez TLS
+          protocol: ftp
           port: 21
 
-          # Katalog docelowy na serwerze – z matrixa
           server-dir: ${{ matrix.target.dir }}
-
-          # Katalog lokalny z którego deployujesz:
           # jeśli motyw jest w podkatalogu, np. "theme-en", zmień na ./theme-en/
           local-dir: ./ 
 
-          # Osobny plik stanu dla każdego targetu
           state-name: .ftp-deploy-sync-state-${{ matrix.target.name }}.json
 
-          # Więcej logów przy debugowaniu błędów typu ECONNRESET
           log-level: verbose
-
-          # Timeout pojedynczych operacji FTP (ms)
           timeout: 120000
 
-          # Pliki/katalogi do pominięcia
           exclude: |
             **/.git*
             **/.git*/**
