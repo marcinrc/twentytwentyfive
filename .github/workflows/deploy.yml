@@ -1,4 +1,5 @@
 name: Deploy to FTP
+
 on:
   push:
     branches: [main]
@@ -6,6 +7,8 @@ on:
 jobs:
   ftp-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15   # maksymalny czas działania joba
+
     strategy:
       max-parallel: 1
       matrix:
@@ -18,17 +21,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ---- Network preflight (shows where it fails) ----
+      # (Opcjonalnie — bardzo pomocne przy debugowaniu problemów z FTPS)
       - name: Connectivity checks
         shell: bash
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
         run: |
           set -e
-          echo "DNS ->"; nslookup "$FTP_HOST" || true
-          echo "TCP:21 ->"; (timeout 5 bash -lc "cat < /dev/null > /dev/tcp/$FTP_HOST/21" && echo "ok") || echo "fail"
+          echo "DNS ->"
+          nslookup "$FTP_HOST" || true
+
+          echo
+          echo "TCP:21 ->"
+          (timeout 5 bash -lc "cat < /dev/null > /dev/tcp/$FTP_HOST/21" && echo "ok") || echo "fail"
+
+          echo
           echo "Explicit FTPS handshake ->"
-          # harmless probe; if server doesn't do TLS you'll still see the banner
           timeout 7 openssl s_client -starttls ftp -crlf -connect "$FTP_HOST:21" </dev/null || true
 
       - name: Upload to ${{ matrix.target.name }} (${{ matrix.target.dir }})
@@ -38,22 +46,27 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
 
-          # Try FTPS first. If the preflight shows FTPS fails (no TLS, handshake errors),
-          # switch this to `ftp`.
+          # Serwer wg logów wspiera AUTH TLS, więc używamy FTPS (explicit)
           protocol: ftps
           port: 21
 
+          # Katalog docelowy na serwerze – z matrixa
           server-dir: ${{ matrix.target.dir }}
-          local-dir: ./
 
-          # Unique state per destination
+          # Katalog lokalny z którego deployujesz:
+          # jeśli motyw jest w podkatalogu, np. "theme-en", zmień na ./theme-en/
+          local-dir: ./ 
+
+          # Osobny plik stanu dla każdego targetu
           state-name: .ftp-deploy-sync-state-${{ matrix.target.name }}.json
 
-          # Slower hosts sometimes need more time
-          timeout: 120000
-
+          # Więcej logów przy debugowaniu błędów typu ECONNRESET
           log-level: verbose
 
+          # Timeout pojedynczych operacji FTP (ms)
+          timeout: 120000
+
+          # Pliki/katalogi do pominięcia
           exclude: |
             **/.git*
             **/.git*/**
