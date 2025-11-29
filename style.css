@@ -109,7 +109,7 @@ dd {
 }
 
 @media (max-width: 781px) {
-	block-reverse {
+	.block-reverse {
 		flex-direction: column-reverse;
 	}
 }
