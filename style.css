@@ -61,6 +61,17 @@ h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p {
 	display: block;
 }
 
+/* --- Navigation --- */
+
+.wp-block-cover {
+	overflow: unset;
+}
+
+.wp-block-cover:first-of-type span:first-of-type,
+.wp-block-cover:first-of-type img:first-of-type {
+	border-radius: 1rem;
+}
+
 
 /* --- Module: FAQ Accordion --- */
 
