@@ -60,6 +60,7 @@ h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p {
 	display: block;
 }
 
+
 /* --- Module: FAQ Accordion --- */
 
 dl {
@@ -105,4 +106,10 @@ dd {
   border: 1px solid #000;
   font-size: 1rem;
   margin-left: 10px;
+}
+
+@media (max-width: 781px) {
+	block-reverse {
+		flex-direction: column-reverse;
+	}
 }
