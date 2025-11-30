@@ -1,3 +1,16 @@
+<?php
+/**
+ * Title: Header logo menu
+ * Slug: twentytwentyfive/header-logo-menu
+ * Categories: 
+ * Keywords: 
+ * @package    WordPress
+ * @subpackage Twenty_Twenty_Five
+ * @since      Twenty Twenty-Five 1.0
+ */
+
+?>
+
 <!-- wp:group {"layout":{"type":"flex","orientation":"vertical","justifyContent":"stretch"}} -->
 <div class="wp-block-group"><!-- wp:group {"layout":{"type":"flex","flexWrap":"nowrap","justifyContent":"space-between","verticalAlignment":"center"}} -->
 <div class="wp-block-group"><!-- wp:group {"layout":{"type":"constrained"}} -->
