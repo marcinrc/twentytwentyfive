@@ -1,7 +1,7 @@
 <?php
 /**
  * Title: Posts list
- * Slug: twentytwentyfive/text-faqs
+ * Slug: twentytwentyfive/posts-list
  * Categories: 
  * Keywords: 
  * @package    WordPress
