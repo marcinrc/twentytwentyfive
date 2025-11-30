@@ -19,6 +19,10 @@ Tags: one-column, custom-colors, custom-menu, custom-logo, editor-style, feature
  * https://github.com/WordPress/gutenberg/issues/42319
  */
 
+:root :where(.wp-block-navigation) {
+	font-size: 1rem;
+}
+
 a {
 	text-decoration-thickness: 1px !important;
 	text-underline-offset: .1em;
