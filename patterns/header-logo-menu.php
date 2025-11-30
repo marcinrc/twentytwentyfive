@@ -3,11 +3,6 @@
  * Title: Header logo menu
  * Slug: twentytwentyfive/header-logo-menu
  * Categories: header
- * Keywords: logo, menu, navigation, header
- * Description: Header with logo on the left and navigation with language switcher on the right.
- * @package    WordPress
- * @subpackage Twenty_Twenty_Five
- * @since      Twenty Twenty-Five 1.0
  */
 ?>
 
