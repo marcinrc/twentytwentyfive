@@ -68,7 +68,7 @@ h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p {
 }
 
 .wp-block-navigation:first-of-type {
-	margin-right: 1rem;
+	margin-right: 0.5rem;
 }
 
 .wp-block-cover:first-of-type span:first-of-type,
